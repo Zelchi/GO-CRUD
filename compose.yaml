@@ -1,0 +1,15 @@
+services:
+  database:
+    image: postgres:15-alpine
+    container_name: postgresSQL
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_DB: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
