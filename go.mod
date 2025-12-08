@@ -1,4 +1,4 @@
-module v2
+module API_GO
 
 go 1.25.4
 
