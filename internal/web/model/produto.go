@@ -1,7 +1,8 @@
 package model
 
 import (
-	"API_GO/database"
+	"API_GO/internal/database"
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -38,5 +39,30 @@ func BuscaTodosOsProdutos() []Produto {
 		produtos = append(produtos, p)
 	}
 
+	if len(produtos) == 0 {
+		p := Produto{0, "Batata", "Batata", 0, 0}
+		produtos = append(produtos, p)
+	}
+
+	fmt.Println(produtos)
 	return produtos
+}
+
+func CriaNovoProduto(nome string, desc string, preco float64, quant int) {
+	db := database.Connect()
+	defer db.Close()
+
+	state, err := db.Prepare(`
+		INSERT INTO produtos(nome, descricao, preco, quantidade)
+		VALUES($1, $2, $3, $4);
+	`)
+	if err != nil {
+		log.Println("Erro ao preparar insert:", err)
+		return
+	}
+	defer state.Close()
+
+	if _, err := state.Exec(nome, desc, preco, quant); err != nil {
+		log.Println("Erro ao inserir produto:", err)
+	}
 }
