@@ -5,11 +5,12 @@ import (
 	"net/http"
 )
 
-func LoadFront() {
-	http.HandleFunc("/", controller.Home)
-	http.HandleFunc("/new", controller.NewItem)
-}
+func LoadRoutes() {
+	http.HandleFunc("/", controller.HomePage)
+	http.HandleFunc("/produto/new", controller.AddItemPage)
+	http.HandleFunc("/produto/edit", controller.EditPage)
 
-func LoadBack() {
-	http.HandleFunc("/api/insert", controller.Insert)
+	http.HandleFunc("/produto/insert", controller.Insert)
+	http.HandleFunc("/produto/update", controller.Update)
+	http.HandleFunc("/produto/delete", controller.Delete)
 }

@@ -2,9 +2,9 @@ package model
 
 import (
 	"API_GO/internal/database"
-	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type Produto struct {
@@ -44,7 +44,6 @@ func BuscaTodosOsProdutos() []Produto {
 		produtos = append(produtos, p)
 	}
 
-	fmt.Println(produtos)
 	return produtos
 }
 
@@ -52,7 +51,7 @@ func CriaNovoProduto(nome string, desc string, preco float64, quant int) {
 	db := database.Connect()
 	defer db.Close()
 
-	state, err := db.Prepare(`
+	stmt, err := db.Prepare(`
 		INSERT INTO produtos(nome, descricao, preco, quantidade)
 		VALUES($1, $2, $3, $4);
 	`)
@@ -60,9 +59,70 @@ func CriaNovoProduto(nome string, desc string, preco float64, quant int) {
 		log.Println("Erro ao preparar insert:", err)
 		return
 	}
-	defer state.Close()
 
-	if _, err := state.Exec(nome, desc, preco, quant); err != nil {
+	if _, err := stmt.Exec(nome, desc, preco, quant); err != nil {
 		log.Println("Erro ao inserir produto:", err)
 	}
+
+	defer stmt.Close()
+}
+
+func DeletaProduto(id int) {
+	db := database.Connect()
+	defer db.Close()
+
+	stmt, err := db.Prepare(`
+		DELETE FROM produtos WHERE id=$1
+	`)
+	if err != nil {
+		log.Println("Erro ao preparar delete: ", err)
+	}
+	if _, err := stmt.Exec(id); err != nil {
+		log.Println("Erro ao deletar produto:", err)
+	}
+
+	defer stmt.Close()
+}
+
+func EditaProduto(id string) Produto {
+	numeroId, _ := strconv.Atoi(id)
+	db := database.Connect()
+	defer db.Close()
+
+	produtoDoBanco, err := db.Query("SELECT * FROM produtos WHERE id=$1", numeroId)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	produtoParaAtualizar := Produto{}
+
+	for produtoDoBanco.Next() {
+		var id, quantidade int
+		var nome, descricao string
+		var preco float64
+
+		err = produtoDoBanco.Scan(&id, &nome, &descricao, &preco, &quantidade)
+		if err != nil {
+			panic(err.Error())
+		}
+		produtoParaAtualizar.Id = id
+		produtoParaAtualizar.Nome = nome
+		produtoParaAtualizar.Descricao = descricao
+		produtoParaAtualizar.Preco = preco
+		produtoParaAtualizar.Quantidade = quantidade
+	}
+	return produtoParaAtualizar
+}
+
+func AtualizaProduto(id int, nome string, desc string, preco float64, quant int) {
+	db := database.Connect()
+	defer db.Close()
+
+	AtualizaProduto, err := db.Prepare(`
+		UPDATE produtos SET nome=$2, descricao=$3, preco=$4,quantidade=$5 WHERE id=$1
+	`)
+	if err != nil {
+		panic(err.Error())
+	}
+	AtualizaProduto.Exec(id, nome, desc, preco, quant)
 }
