@@ -2,13 +2,14 @@ package controller
 
 import (
 	"API_GO/internal/web/model"
+	"API_GO/internal/web/view"
 	"fmt"
+	"html/template"
 	"net/http"
 	"strconv"
-	"text/template"
 )
 
-var temp = template.Must(template.ParseGlob("internal/web/view/*.html"))
+var temp = template.Must(template.ParseFS(view.ArquivosHTML, "*.html"))
 
 func Home(w http.ResponseWriter, r *http.Request) {
 	produtos := model.BuscaTodosOsProdutos()
@@ -38,5 +39,5 @@ func Insert(w http.ResponseWriter, r *http.Request) {
 		model.CriaNovoProduto(nome, descricao, precoConvertido, quantidadeConvertida)
 	}
 
-	http.Redirect(w, r, "/", 301)
+	http.Redirect(w, r, "/", http.StatusMovedPermanently)
 }
